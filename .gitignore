@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+reports/html_reports/
+reports/screenshots/
+.env
+.vscode/
