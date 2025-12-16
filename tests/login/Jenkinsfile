@@ -1,46 +1,6 @@
 pipeline {
     agent any
 
-    stages {
-
-        stage('Setup Virtual Environment') {
-            steps {
-                bat '''
-                "C:\\Users\\tectum23\\AppData\\Local\\Programs\\Python\\Python313\\python.exe" -m venv .venv
-                call .venv\\Scripts\\activate
-                pip install --upgrade pip
-                pip install -r requirements.txt
-                '''
-            }
-        }
-
-        stage('Run Selenium Tests') {
-            steps {
-                bat '''
-                call .venv\\Scripts\\activate
-                python -m pytest -v
-                '''
-            }
-        }
-    }
-
-    post {
-        always {
-            echo 'Build finished'
-        }
-        success {
-            echo '✅ Selenium tests passed'
-        }
-        failure {
-            echo '❌ Selenium tests failed'
-        }
-    }
-}
-
-
-pipeline {
-    agent any
-
     environment {
         PYTHON = "C:\\Users\\tectum23\\AppData\\Local\\Programs\\Python\\Python313\\python.exe"
     }
@@ -78,7 +38,9 @@ pipeline {
 
     post {
         always {
-            publishHTML([
+            echo 'Publishing HTML Report'
+
+            publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
@@ -89,11 +51,11 @@ pipeline {
         }
 
         success {
-            echo '✅ Build & Tests Passed'
+            echo '✅ Selenium tests passed'
         }
 
         failure {
-            echo '❌ Tests Failed – Report Generated'
+            echo '❌ Selenium tests failed'
         }
     }
 }
