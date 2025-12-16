@@ -59,3 +59,56 @@ pipeline {
         }
     }
 }
+
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Pawan080397/valid_login.git', credentialsId: 'pawantoken'
+            }
+        }
+
+        stage('Setup Virtual Environment') {
+            steps {
+                bat '"C:\\Users\\tectum23\\AppData\\Local\\Programs\\Python\\Python313\\python.exe" -m venv .venv'
+                bat 'call .venv\\Scripts\\activate && pip install -r requirements.txt'
+            }
+        }
+
+        stage('Run Selenium Tests') {
+            steps {
+                bat 'call .venv\\Scripts\\activate && pytest tests/login --html=report.html --self-contained-html --capture=tee-sys --show-capture=all -v'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Publishing HTML Report'
+            publishHTML(target: [
+                reportDir: '.', 
+                reportFiles: 'report.html', 
+                reportName: 'Detailed Selenium Report'
+            ])
+        }
+    }
+}
+
+
+stage('Run Selenium Tests') {
+    steps {
+        bat '''
+        call .venv\\Scripts\\activate
+        pytest
+        '''
+    }
+}
+
+post {
+    always {
+        archiveArtifacts artifacts: 'report.html, screenshots/**/*', fingerprint: true
+    }
+}
