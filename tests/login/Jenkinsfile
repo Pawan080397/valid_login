@@ -2,12 +2,6 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/USERNAME/REPO_NAME.git'
-            }
-        }
 
         stage('Setup Virtual Environment') {
             steps {
@@ -24,7 +18,7 @@ pipeline {
             steps {
                 bat '''
                 call .venv\\Scripts\\activate
-                python -m pytest -v
+                pytest -v --html=report.html --self-contained-html
                 '''
             }
         }
@@ -32,7 +26,11 @@ pipeline {
 
     post {
         always {
-            echo 'Build finished'
+            publishHTML([
+                reportDir: '.',
+                reportFiles: 'report.html',
+                reportName: 'PyTest Automation Report'
+            ])
         }
         success {
             echo '✅ Selenium tests passed'
