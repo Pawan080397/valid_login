@@ -18,7 +18,7 @@ pipeline {
             steps {
                 bat '''
                 call .venv\\Scripts\\activate
-                pytest -v --html=report.html --self-contained-html
+                python -m pytest -v
                 '''
             }
         }
@@ -26,11 +26,7 @@ pipeline {
 
     post {
         always {
-            publishHTML([
-                reportDir: '.',
-                reportFiles: 'report.html',
-                reportName: 'PyTest Automation Report'
-            ])
+            echo 'Build finished'
         }
         success {
             echo '✅ Selenium tests passed'
