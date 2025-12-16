@@ -36,3 +36,64 @@ pipeline {
         }
     }
 }
+
+
+pipeline {
+    agent any
+
+    environment {
+        PYTHON = "C:\\Users\\tectum23\\AppData\\Local\\Programs\\Python\\Python313\\python.exe"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Pawan080397/valid_login.git',
+                    credentialsId: 'pawantoken'
+            }
+        }
+
+        stage('Setup Virtual Environment') {
+            steps {
+                bat """
+                "%PYTHON%" -m venv .venv
+                call .venv\\Scripts\\activate
+                python -m pip install --upgrade pip
+                pip install -r requirements.txt
+                """
+            }
+        }
+
+        stage('Run Selenium Tests') {
+            steps {
+                bat """
+                call .venv\\Scripts\\activate
+                python -m pytest -v --html=report.html --self-contained-html
+                """
+            }
+        }
+    }
+
+    post {
+        always {
+            publishHTML([
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: '.',
+                reportFiles: 'report.html',
+                reportName: 'Selenium Test Report'
+            ])
+        }
+
+        success {
+            echo '✅ Build & Tests Passed'
+        }
+
+        failure {
+            echo '❌ Tests Failed – Report Generated'
+        }
+    }
+}
