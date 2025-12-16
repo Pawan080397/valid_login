@@ -1,37 +1,32 @@
 pipeline {
     agent any
 
-    environment {
-        PYTHON = "C:\\Users\\tectum23\\AppData\\Local\\Programs\\Python\\Python313\\python.exe"
-    }
-
     stages {
-
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/Pawan080397/valid_login.git',
-                    credentialsId: 'pawantoken'
+                    credentialsId: 'pawantoken',
+                    url: 'https://github.com/Pawan080397/valid_login.git'
             }
         }
 
         stage('Setup Virtual Environment') {
             steps {
-                bat """
-                "%PYTHON%" -m venv .venv
+                bat '''
+                "C:\\Users\\tectum23\\AppData\\Local\\Programs\\Python\\Python313\\python.exe" -m venv .venv
                 call .venv\\Scripts\\activate
-                python -m pip install --upgrade pip
+                pip install --upgrade pip
                 pip install -r requirements.txt
-                """
+                '''
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                bat """
+                bat '''
                 call .venv\\Scripts\\activate
-                python -m pytest -v --html=report.html --self-contained-html
-                """
+                pytest -v --html=report.html --self-contained-html
+                '''
             }
         }
     }
@@ -39,9 +34,8 @@ pipeline {
     post {
         always {
             echo 'Publishing HTML Report'
-
             publishHTML(target: [
-                allowMissing: true,
+                allowMissing: false,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
                 reportDir: '.',
@@ -57,58 +51,5 @@ pipeline {
         failure {
             echo '❌ Selenium tests failed'
         }
-    }
-}
-
-
-pipeline {
-    agent any
-
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Pawan080397/valid_login.git', credentialsId: 'pawantoken'
-            }
-        }
-
-        stage('Setup Virtual Environment') {
-            steps {
-                bat '"C:\\Users\\tectum23\\AppData\\Local\\Programs\\Python\\Python313\\python.exe" -m venv .venv'
-                bat 'call .venv\\Scripts\\activate && pip install -r requirements.txt'
-            }
-        }
-
-        stage('Run Selenium Tests') {
-            steps {
-                bat 'call .venv\\Scripts\\activate && pytest tests/login --html=report.html --self-contained-html --capture=tee-sys --show-capture=all -v'
-            }
-        }
-    }
-
-    post {
-        always {
-            echo 'Publishing HTML Report'
-            publishHTML(target: [
-                reportDir: '.', 
-                reportFiles: 'report.html', 
-                reportName: 'Detailed Selenium Report'
-            ])
-        }
-    }
-}
-
-
-stage('Run Selenium Tests') {
-    steps {
-        bat '''
-        call .venv\\Scripts\\activate
-        pytest
-        '''
-    }
-}
-
-post {
-    always {
-        archiveArtifacts artifacts: 'report.html, screenshots/**/*', fingerprint: true
     }
 }
